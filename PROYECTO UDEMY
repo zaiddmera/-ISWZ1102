@@ -1,0 +1,135 @@
+#include<stdio.h>
+#include<stdlib.h>
+
+#define MAX_MEDICINES 50
+
+FILE *fd;
+
+struct Medicina {
+    char nombre[20];
+    int cantidad;
+};
+
+struct Medicina inventario[MAX_MEDICINES];
+int totalMedicinas = 0;
+
+char direccion[] = "D:\\Datos\\datos.txt";
+
+void guardarDatos() {
+    fd = fopen(direccion, "wb");
+
+    if (fd == NULL) {
+        printf("Error al tratar de crear el archivo");
+        exit(1);
+    }
+
+    fwrite(&totalMedicinas, sizeof(int), 1, fd);
+
+    for (int i = 0; i < totalMedicinas; i++) {
+        fwrite(&inventario[i], sizeof(struct Medicina), 1, fd);
+    }
+
+    fclose(fd);
+}
+
+void cargarDatos() {
+    fd = fopen(direccion, "rb");
+
+    if (fd != NULL) {
+        fread(&totalMedicinas, sizeof(int), 1, fd);
+
+        for (int i = 0; i < totalMedicinas; i++) {
+            fread(&inventario[i], sizeof(struct Medicina), 1, fd);
+        }
+
+        fclose(fd);
+    }
+}
+
+void agregarMedicina() {
+    if (totalMedicinas < MAX_MEDICINES) {
+        printf("\nNombre de la medicina: ");
+        scanf("%s", inventario[totalMedicinas].nombre);
+
+        printf("Cantidad disponible: ");
+        scanf("%d", &inventario[totalMedicinas].cantidad);
+
+        totalMedicinas++;
+        printf("Medicina agregada exitosamente.\n");
+    } else {
+        printf("Error: No se pueden agregar más medicinas, límite alcanzado.\n");
+    }
+}
+
+void visualizarMedicinas() {
+    if (totalMedicinas > 0) {
+        printf("\n\t.:Inventario de Medicinas:.\n");
+        for (int i = 0; i < totalMedicinas; i++) {
+            printf("\nMedicina: %s\nCantidad: %d\n", inventario[i].nombre, inventario[i].cantidad);
+        }
+    } else {
+        printf("\nInventario vacío. Agregue medicinas primero.\n");
+    }
+}
+
+void despacharMedicina() {
+    char nombreMedicina[20];
+    int cantidadDespachar;
+
+    if (totalMedicinas > 0) {
+        printf("\nNombre de la medicina a despachar: ");
+        scanf("%s", nombreMedicina);
+
+        for (int i = 0; i < totalMedicinas; i++) {
+            if (strcmp(inventario[i].nombre, nombreMedicina) == 0) {
+                printf("Cantidad a despachar: ");
+                scanf("%d", &cantidadDespachar);
+
+                if (cantidadDespachar <= inventario[i].cantidad) {
+                    inventario[i].cantidad -= cantidadDespachar;
+                    printf("Despacho realizado exitosamente.\n");
+                    guardarDatos();  // Guardar después de realizar el despacho
+                } else {
+                    printf("Error: No hay suficiente cantidad disponible para despachar.\n");
+                }
+
+                return;
+            }
+        }
+
+        printf("Error: Medicina no encontrada en el inventario.\n");
+    } else {
+        printf("Error: No hay medicinas en el inventario para despachar.\n");
+    }
+}
+
+int main() {
+    cargarDatos();  // Cargar datos al iniciar el programa
+
+    int opc;
+
+    do {
+        printf("\n\t.:MENU:.\n");
+        printf("1. Agregar Medicina\n");
+        printf("2. Visualizar Medicinas\n");
+        printf("3. Despachar Medicina\n");
+        printf("4. Salir\n");
+        printf("Opción: ");
+        scanf("%d", &opc);
+
+        switch (opc) {
+            case 1:
+                agregarMedicina();
+                break;
+            case 2:
+                visualizarMedicinas();
+                break;
+            case 3:
+                despacharMedicina();
+                break;
+        }
+
+    } while (opc != 4);
+
+    return 0;
+}
